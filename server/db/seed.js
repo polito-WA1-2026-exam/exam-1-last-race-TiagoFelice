@@ -1,55 +1,6 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import sqlite3 from 'sqlite3';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const serverRoot = path.join(__dirname, '..');
-const dataDir = path.join(serverRoot, 'data');
-const dbPath = path.join(dataDir, 'last-race.sqlite');
-const schemaPath = path.join(__dirname, 'schema.sql');
-
-fs.mkdirSync(dataDir, { recursive: true });
-
-const db = new sqlite3.Database(dbPath);
-
-function run(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.run(sql, params, function onRun(error) {
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve(this);
-    });
-  });
-}
-
-function exec(sql) {
-  return new Promise((resolve, reject) => {
-    db.exec(sql, (error) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve();
-    });
-  });
-}
-
-function close() {
-  return new Promise((resolve, reject) => {
-    db.close((error) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve();
-    });
-  });
-}
+import { closeDatabase, dbPath, exec, run, schemaPath } from './database.js';
 
 function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString('hex');
@@ -306,5 +257,5 @@ try {
   await seed();
   console.log(`Seeded database at ${dbPath}`);
 } finally {
-  await close();
+  await closeDatabase();
 }
