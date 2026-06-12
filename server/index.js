@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import session from 'express-session';
 import passport from './auth/passport.js';
+import gameRouter from './routes/game.js';
 import instructionsRouter from './routes/instructions.js';
 import sessionsRouter from './routes/sessions.js';
 
@@ -37,6 +38,7 @@ app.use(passport.session());
 
 app.use('/api/instructions', instructionsRouter);
 app.use('/api/sessions', sessionsRouter);
+app.use('/api', gameRouter);
 
 app.use((error, req, res, next) => {
   console.error(error);
