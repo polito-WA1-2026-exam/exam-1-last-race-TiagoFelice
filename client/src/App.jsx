@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ApiError, getInstructions } from './api'
 import GameView from './game/GameView.jsx'
+import RankingView from './ranking/RankingView.jsx'
 import { useSession } from './sessionContext'
 import './App.css'
 
@@ -308,11 +309,9 @@ function RankingPage() {
   return (
     <ProtectedPage
       title="Ranking"
-      description="The ranking view will be connected after the game flow is in place."
+      description="Best stored score for each registered player."
     >
-      <div className="empty-state">
-        <p>No ranking data is loaded in this client step.</p>
-      </div>
+      <RankingView />
     </ProtectedPage>
   )
 }

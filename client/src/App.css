@@ -508,6 +508,54 @@
   margin: 6px 0 12px;
 }
 
+.ranking-table-wrap {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--panel);
+}
+
+.ranking-table th,
+.ranking-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px;
+  text-align: left;
+}
+
+.ranking-table th {
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.ranking-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.ranking-table td:first-child,
+.ranking-table td:nth-child(3),
+.ranking-table td:nth-child(4) {
+  color: var(--text-h);
+  font-weight: 800;
+}
+
+.ranking-table td:nth-child(2) {
+  display: grid;
+  gap: 3px;
+}
+
+.ranking-table td:nth-child(2) span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
 @media (max-width: 760px) {
   .app-header {
     grid-template-columns: 1fr;
@@ -547,5 +595,13 @@
   .network-map {
     min-height: 420px;
     height: 420px;
+  }
+
+  .ranking-table-wrap {
+    overflow-x: auto;
+  }
+
+  .ranking-table {
+    min-width: 620px;
   }
 }

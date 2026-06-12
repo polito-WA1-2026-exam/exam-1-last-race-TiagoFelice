@@ -76,3 +76,7 @@ export function submitGameRoute(gameId, route) {
 export function getGameSteps(gameId) {
   return apiRequest(`/games/${gameId}/steps`)
 }
+
+export function getRanking() {
+  return apiRequest('/ranking')
+}
