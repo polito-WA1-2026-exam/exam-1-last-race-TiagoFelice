@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ApiError, getInstructions } from './api'
+import GameView from './game/GameView.jsx'
 import { useSession } from './sessionContext'
 import './App.css'
 
@@ -296,22 +297,9 @@ function GamePage() {
   return (
     <ProtectedPage
       title="Game"
-      description="The next step will connect this page to setup, planning, execution, and result APIs."
+      description="Study the network, plan a route, execute it, and review the score."
     >
-      <div className="placeholder-grid">
-        <div>
-          <h3>Setup</h3>
-          <p>Full network map for logged-in players.</p>
-        </div>
-        <div>
-          <h3>Planning</h3>
-          <p>Station-only map, assigned route, segment list, and timer.</p>
-        </div>
-        <div>
-          <h3>Execution</h3>
-          <p>One random event per submitted route segment.</p>
-        </div>
-      </div>
+      <GameView />
     </ProtectedPage>
   )
 }

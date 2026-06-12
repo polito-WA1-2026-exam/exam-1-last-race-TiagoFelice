@@ -55,3 +55,24 @@ export function logoutSession() {
     method: 'DELETE',
   })
 }
+
+export function getGameSetup() {
+  return apiRequest('/game/setup')
+}
+
+export function createGame() {
+  return apiRequest('/games', {
+    method: 'POST',
+  })
+}
+
+export function submitGameRoute(gameId, route) {
+  return apiRequest(`/games/${gameId}/submit-route`, {
+    method: 'POST',
+    body: { route },
+  })
+}
+
+export function getGameSteps(gameId) {
+  return apiRequest(`/games/${gameId}/steps`)
+}
