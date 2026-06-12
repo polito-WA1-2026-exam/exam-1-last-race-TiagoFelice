@@ -328,17 +328,15 @@ function PlanningPhase({
   )
 }
 
-function ExecutionPhase({ result, stepIndex, onNext, onShowResult }) {
+function ExecutionPhase({ result, onShowResult }) {
   const steps = result.execution.steps
-  const visibleSteps = steps.slice(0, stepIndex + 1)
-  const isLastStep = stepIndex >= steps.length - 1
 
   return (
     <div className="execution-layout">
       <section>
         <h2>Execution</h2>
         <div className="execution-steps">
-          {visibleSteps.map((step) => (
+          {steps.map((step) => (
             <article className="execution-step" key={step.stepNumber}>
               <div className="step-number">Step {step.stepNumber}</div>
               <h3>
@@ -363,15 +361,9 @@ function ExecutionPhase({ result, stepIndex, onNext, onShowResult }) {
           <span>Projected score</span>
           <strong>{result.execution.finalScore}</strong>
         </div>
-        {isLastStep ? (
-          <button className="primary-button wide-button" type="button" onClick={onShowResult}>
-            Show result
-          </button>
-        ) : (
-          <button className="primary-button wide-button" type="button" onClick={onNext}>
-            Next step
-          </button>
-        )}
+        <button className="primary-button wide-button" type="button" onClick={onShowResult}>
+          Show result
+        </button>
       </aside>
     </div>
   )
@@ -420,7 +412,6 @@ function GameView() {
   const [route, setRoute] = useState([])
   const [timeLeft, setTimeLeft] = useState(90)
   const [result, setResult] = useState(null)
-  const [executionStepIndex, setExecutionStepIndex] = useState(0)
   const latestPlanning = useRef({ game: null, route: [], phase, submitting })
   const submitRouteRef = useRef(null)
 
@@ -469,7 +460,6 @@ function GameView() {
         const data = await submitGameRoute(game.id, routeToSubmit)
         setResult(data)
         setGame(data.game)
-        setExecutionStepIndex(0)
         setPhase(data.validation.valid ? PHASES.execution : PHASES.result)
       } catch {
         setError('The route could not be submitted.')
@@ -525,7 +515,6 @@ function GameView() {
       setRoute([])
       setTimeLeft(data.game.planningTimeSeconds)
       setResult(null)
-      setExecutionStepIndex(0)
       setPhase(PHASES.planning)
     } catch {
       setError('Cannot start a new game right now.')
@@ -585,7 +574,6 @@ function GameView() {
     setRoute([])
     setTimeLeft(90)
     setResult(null)
-    setExecutionStepIndex(0)
     setError(null)
   }
 
@@ -633,10 +621,8 @@ function GameView() {
 
       {phase === PHASES.execution && result ? (
         <ExecutionPhase
-          onNext={() => setExecutionStepIndex((index) => index + 1)}
           onShowResult={() => setPhase(PHASES.result)}
           result={result}
-          stepIndex={executionStepIndex}
         />
       ) : null}
 
