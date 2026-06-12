@@ -1,15 +1,6 @@
-import crypto from 'node:crypto';
 import fs from 'node:fs';
+import { hashPassword } from '../auth/passwords.js';
 import { closeDatabase, dbPath, exec, run, schemaPath } from './database.js';
-
-function hashPassword(password) {
-  const salt = crypto.randomBytes(16).toString('hex');
-  const passwordHash = crypto
-    .pbkdf2Sync(password, salt, 310000, 32, 'sha256')
-    .toString('hex');
-
-  return { salt, passwordHash };
-}
 
 async function insertUser(username, displayName, password) {
   const { salt, passwordHash } = hashPassword(password);

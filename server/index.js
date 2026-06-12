@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import session from 'express-session';
 import passport from './auth/passport.js';
+import instructionsRouter from './routes/instructions.js';
 import sessionsRouter from './routes/sessions.js';
 
 const app = express();
@@ -34,6 +35,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.use('/api/instructions', instructionsRouter);
 app.use('/api/sessions', sessionsRouter);
 
 app.use((error, req, res, next) => {
