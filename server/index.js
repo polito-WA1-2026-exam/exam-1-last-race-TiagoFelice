@@ -8,11 +8,22 @@ import sessionsRouter from './routes/sessions.js';
 
 const app = express();
 const port = 3001;
-const clientOrigin = process.env.CLIENT_ORIGIN ?? 'http://localhost:5173';
+const clientOrigins = (
+  process.env.CLIENT_ORIGIN ?? 'http://localhost:5173,http://127.0.0.1:5173'
+)
+  .split(',')
+  .map((origin) => origin.trim());
 
 app.use(
   cors({
-    origin: clientOrigin,
+    origin(origin, callback) {
+      if (!origin || clientOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error('Origin not allowed by CORS'));
+    },
     credentials: true,
   }),
 );

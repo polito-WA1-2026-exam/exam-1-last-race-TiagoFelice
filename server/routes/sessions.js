@@ -1,5 +1,4 @@
 import express from 'express';
-import { requireAuth } from '../auth/middleware.js';
 import passport from '../auth/passport.js';
 
 const router = express.Router();
@@ -12,8 +11,10 @@ function toSessionUser(user) {
   };
 }
 
-router.get('/current', requireAuth, (req, res) => {
-  res.json({ user: toSessionUser(req.user) });
+router.get('/current', (req, res) => {
+  res.json({
+    user: req.isAuthenticated() ? toSessionUser(req.user) : null,
+  });
 });
 
 router.post('/', (req, res, next) => {
