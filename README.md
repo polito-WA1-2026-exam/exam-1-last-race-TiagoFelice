@@ -89,11 +89,13 @@ played games. The client is normally available at `http://localhost:5173`.
 
 ![Game in progress](docs/screenshots/game-in-progress.png)
 
-## Registered user
+## Registered users
 
 | Username | Password |
 | --- | --- |
 | `tiago` | `tiagopass` |
+| `sofia` | `sofiapass` |
+| `marco` | `marcopass` |
 
 ## AI usage
 
