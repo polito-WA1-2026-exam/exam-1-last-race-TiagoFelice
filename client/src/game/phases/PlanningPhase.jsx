@@ -92,7 +92,7 @@ export function PlanningPhase({
             className="primary-button"
             disabled={submitting}
             type="button"
-            onClick={onSubmit}
+            onClick={() => onSubmit()}
           >
             {submitting ? 'Submitting' : 'Submit'}
           </button>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { createGame, getGameSetup, submitGameRoute } from '../../api'
+import { ApiError, createGame, getGameSetup, submitGameRoute } from '../../api'
 import { PHASES } from '../constants'
 import { segmentKey } from '../utils/route'
 
@@ -28,6 +28,7 @@ export function useGameFlow() {
   const [result, setResult] = useState(null)
   const latestPlanning = useRef({ game: null, route: [], phase, submitting })
   const submitRouteRef = useRef(null)
+  const submissionInFlight = useRef(false)
 
   useEffect(() => {
     let cancelled = false
@@ -62,26 +63,34 @@ export function useGameFlow() {
   }, [game, phase, route, submitting])
 
   const submitRoute = useCallback(
-    async (routeToSubmit = route) => {
-      if (!game || submitting) {
+    async (routeToSubmit) => {
+      if (!game || submissionInFlight.current) {
         return
       }
 
+      const selectedRoute = Array.isArray(routeToSubmit) ? routeToSubmit : route
+
+      submissionInFlight.current = true
       setSubmitting(true)
       setError(null)
 
       try {
-        const data = await submitGameRoute(game.id, routeToSubmit)
+        const data = await submitGameRoute(game.id, selectedRoute)
         setResult(data)
         setGame(data.game)
         setPhase(data.validation.valid ? PHASES.execution : PHASES.result)
-      } catch {
-        setError('The route could not be submitted.')
+      } catch (error) {
+        if (error instanceof ApiError) {
+          setError(`The route could not be submitted: ${error.message}`)
+        } else {
+          setError('The route could not be submitted. Check that the API server is running.')
+        }
       } finally {
+        submissionInFlight.current = false
         setSubmitting(false)
       }
     },
-    [game, route, submitting],
+    [game, route],
   )
 
   useEffect(() => {
