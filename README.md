@@ -82,8 +82,6 @@ played games. The client is normally available at `http://localhost:5173`.
 
 ## Screenshots
 
-> **Still required:** save the two images below at these exact paths and commit
-> them to the repository. The links will render as embedded screenshots once the files exist.
 
 ![General ranking page](docs/screenshots/ranking.png)
 
