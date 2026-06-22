@@ -1,24 +1,15 @@
-# Exam 1: Last Race
+# Exam 1 — Last Race
 
-## Student
+**Student:** Tiago Felice
+**Stack:** React 19, React Router, Express, Passport.js, sessions, and SQLite.
 
-Tiago Felice
+Last Race is a single-player metro route-planning game. The server assigns a
+start and destination, validates the route and deadline, applies random events,
+stores the result, and exposes a best-score ranking.
 
-## Project Summary
+## Run the project
 
-Last Race is a single-player route-planning game built with React 19, React
-Router, Express, Passport.js, sessions, and SQLite.
-
-A registered player studies a complete metro network, starts a game, receives a
-random start and destination station, and plans a route in 90 seconds. The server
-validates the submitted route, applies one random event per segment, stores the
-final score, and exposes a ranking with the best score for each registered user.
-
-Anonymous users can only read the public instructions.
-
-## Run The Project
-
-Install and start the API server:
+Start the API server:
 
 ```bash
 cd server
@@ -27,14 +18,7 @@ npm run seed
 node index.js
 ```
 
-If `nodemon` is installed globally, this also works:
-
-```bash
-cd server
-nodemon index.js
-```
-
-Install and start the React client in another terminal:
+Start the React client in a second terminal:
 
 ```bash
 cd client
@@ -42,113 +26,78 @@ npm install
 npm run dev
 ```
 
-The client runs on the Vite URL printed in the terminal, usually
-`http://localhost:5173`.
+`npm run seed` recreates the local SQLite database and removes previously
+played games. The client is normally available at `http://localhost:5173`.
 
-## React Client Application Routes
+## Server-side
 
-- `/`: public instructions page. Shows the game goal, phase descriptions, and
-  login status.
-- `/login`: login form for registered users.
-- `/game`: protected game page. Shows setup, planning, execution, and result
-  phases.
-- `/ranking`: protected ranking page. Shows each registered user's best stored
-  score.
+### HTTP APIs
 
-## API Server
+| Method and endpoint | Parameters and exchanged objects |
+| --- | --- |
+| `GET /api/instructions` | Public. Returns the game goal, the four phase descriptions, and anonymous-access rules. |
+| `GET /api/sessions/current` | Public. Returns `{ user: null }` or the authenticated user's `id`, `username`, and `displayName`. |
+| `POST /api/sessions` | Public. Accepts `{ username, password }`; creates a session cookie and returns the authenticated user. |
+| `DELETE /api/sessions/current` | Public. Destroys the current session and returns `204 No Content`. |
+| `GET /api/game/setup` | Authenticated. Returns the complete network: stations, lines, segments, and interchange stations. |
+| `POST /api/games` | Authenticated. Creates a planning game and returns its assignment, server deadline, station-only map, and selectable segments. |
+| `POST /api/games/:id/submit-route` | Authenticated. Accepts `{ route: [{ fromStationId, toStationId }] }`; returns validation, execution steps, and final score. |
+| `GET /api/games/:id/steps` | Authenticated. Returns a submitted game's assignment and its stored execution steps. |
+| `GET /api/ranking` | Authenticated. Returns one row per player with a stored score, ordered by best score. |
 
-- `GET /api/instructions`
-  - Public endpoint.
-  - Response: game goal, phase descriptions, and anonymous access message.
+### Database tables
 
-- `GET /api/sessions/current`
-  - Public endpoint.
-  - Response: `{ user: null }` when anonymous, or the logged-in user object.
+| Table | Purpose |
+| --- | --- |
+| `users` | Registered accounts, including the username, display name, password salt, and password hash. |
+| `stations` | Metro station names and coordinates used to draw the network. |
+| `lines` | Metro line names and display colours. |
+| `line_stops` | Ordered stations for each line; consecutive stops define playable segments. |
+| `events` | Random event descriptions and coin deltas from `-4` to `+4`. |
+| `games` | Game ownership, assignment, planning deadline, submitted route, status, and final score. |
+| `game_steps` | One stored event and running coin total for each segment of a completed game. |
 
-- `POST /api/sessions`
-  - Public endpoint.
-  - Request body: `{ "username": "...", "password": "..." }`.
-  - Response: logged-in user object.
-  - Creates a session cookie.
+## Client-side
 
-- `DELETE /api/sessions/current`
-  - Public endpoint.
-  - Destroys the current session.
+### React routes
 
-- `GET /api/game/setup`
-  - Protected endpoint.
-  - Response: full network map with stations, lines, segments, and interchange
-    stations.
+| Route | Purpose |
+| --- | --- |
+| `/` | Public instructions page with the current login status. |
+| `/login` | Controlled username/password form that creates a session. |
+| `/game` | Protected game flow: setup, planning, execution, and result. |
+| `/ranking` | Protected table of the best stored score for each player. |
 
-- `POST /api/games`
-  - Protected endpoint.
-  - Starts a new game.
-  - Response: game assignment, station-only planning map, all available
-    segments, the planning time, and the server-generated planning deadline.
+### Main React components
 
-- `POST /api/games/:id/submit-route`
-  - Protected endpoint.
-  - Request body: `{ "route": [{ "fromStationId": 1, "toStationId": 2 }] }`.
-  - Response: validation result, saved game, execution steps, and final score.
-  - Invalid, incomplete, or late routes are stored with score `0`.
+| Component | Purpose |
+| --- | --- |
+| `App` | Defines the React Router routes, navigation header, and protected-page wrapper. |
+| `SessionProvider` | Keeps the authenticated user and session actions in shared React context. |
+| `GameView` and `useGameFlow` | Coordinate the setup, planning, execution, and result phases. |
+| `NetworkMap` | Renders the metro network and the route selected by the player as SVG. |
+| `PlanningPhase` | Displays the server deadline, assignment, selectable segments, and route controls. |
+| `ExecutionPhase` and `ResultPhase` | Display event-by-event scoring and the final result. |
+| `RankingView` | Loads and renders the authenticated users' best-score ranking. |
 
-- `GET /api/games/:id/steps`
-  - Protected endpoint.
-  - Response: stored execution steps for a submitted game.
+## Screenshots
 
-- `GET /api/ranking`
-  - Protected endpoint.
-  - Response: ranking rows ordered by best score descending.
+> **Still required:** save the two images below at these exact paths and commit
+> them to the repository. The links will render as embedded screenshots once the files exist.
 
-## Database Tables
+![General ranking page](docs/screenshots/ranking.png)
 
-- `users`: registered users with username, display name, salt, and password
-  hash.
-- `stations`: metro stations, including `x` and `y` coordinates for map drawing.
-- `lines`: metro lines with name and color.
-- `line_stops`: ordered stations for each line. Consecutive rows define the
-  playable segment connections.
-- `events`: random execution events with a coin delta between `-4` and `4`.
-- `games`: one row per started game, including user, start station, destination,
-  status, submitted route JSON, and final score.
-- `game_steps`: stored execution steps for completed games, including the event
-  applied and running coin total.
+![Game in progress](docs/screenshots/game-in-progress.png)
 
-## Seeded Data
+## Registered user
 
-- 1 registered user.
-- 20 stations.
-- 6 metro lines.
-- 12 random events.
-- 0 historical games after seed reset.
+| Username | Password |
+| --- | --- |
+| `tiago` | `tiagopass` |
 
-## Main React Components
+## AI usage
 
-- `App` in `client/src/App.jsx`: React Router routes, header, protected route
-  wrapper, and page selection.
-- `GameView` in `client/src/game/GameView.jsx`: complete game flow with setup,
-  planning, execution, and result phases.
-- `NetworkMap` in `client/src/game/GameView.jsx`: SVG map renderer for the full
-  network and selected route.
-- `SegmentPicker` in `client/src/game/GameView.jsx`: shows selectable connected
-  segments from the current station.
-- `RankingView` in `client/src/ranking/RankingView.jsx`: loads and displays the
-  best-score ranking table.
-- `SessionProvider` in `client/src/session.jsx`: keeps the current login session
-  in React state.
-
-## Users Credentials
-
-- username: `tiago`
-- password: `tiagopass`
-
-## Screenshot
-
-A screenshot should be added after the final browser walkthrough in Step 13.
-
-## Use of AI Tools
-
-I used ChatGPT/Codex as a learning assistant while developing this project. It
-helped organize the implementation in small steps, explain concepts, generate
-initial code, and debug errors. I verified the generated code by reading it,
-running the seed script, running the React linter, and building the client.
+ChatGPT/Codex was used as a learning assistant to explain concepts, organize
+implementation steps, generate starting code, and debug issues. Generated output
+was read and adapted, then verified through code review, database seeding, linting,
+production builds, and local API checks.
