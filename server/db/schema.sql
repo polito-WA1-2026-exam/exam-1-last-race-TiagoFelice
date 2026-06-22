@@ -51,6 +51,7 @@ CREATE TABLE games (
   start_station_id INTEGER NOT NULL,
   destination_station_id INTEGER NOT NULL,
   status TEXT NOT NULL CHECK (status IN ('planning', 'completed', 'invalid')),
+  planning_deadline_at TEXT NOT NULL,
   route_json TEXT,
   final_score INTEGER CHECK (final_score IS NULL OR final_score >= 0),
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,

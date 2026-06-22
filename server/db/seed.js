@@ -56,16 +56,18 @@ async function insertHistoricalGame(game, ids) {
        start_station_id,
        destination_station_id,
        status,
+       planning_deadline_at,
        route_json,
        final_score,
        created_at
      )
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       ids.users.get(game.username),
       ids.stations.get(game.start),
       ids.stations.get(game.destination),
       game.status,
+      game.planningDeadlineAt ?? game.createdAt,
       JSON.stringify(game.route),
       game.finalScore,
       game.createdAt,

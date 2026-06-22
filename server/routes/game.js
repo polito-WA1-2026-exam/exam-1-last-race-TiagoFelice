@@ -1,7 +1,13 @@
 import express from 'express';
 import { requireAuth } from '../auth/middleware.js';
 import { executeValidRoute, INITIAL_COINS } from '../game/execution.js';
-import { chooseStartAndDestination, toPlanningSegment } from '../game/planning.js';
+import {
+  chooseStartAndDestination,
+  createPlanningDeadline,
+  isPlanningExpired,
+  PLANNING_TIME_SECONDS,
+  toPlanningSegment,
+} from '../game/planning.js';
 import { validateSubmittedRoute } from '../game/routeValidation.js';
 import {
   createPlanningGame,
@@ -14,7 +20,6 @@ import {
 } from '../db/queries.js';
 
 const router = express.Router();
-const PLANNING_TIME_SECONDS = 90;
 
 function toStationOnlyMap(network) {
   return {
@@ -35,6 +40,24 @@ function toGameAssignment(game) {
       name: game.destinationStationName,
     },
     finalScore: game.finalScore,
+    planningDeadlineAt: game.planningDeadlineAt,
+  };
+}
+
+function expiredPlanningResponse(game, validation) {
+  return {
+    game: toGameAssignment(game),
+    validation: {
+      valid: false,
+      route: validation.route,
+      reason: 'Planning time expired',
+    },
+    execution: {
+      initialCoins: INITIAL_COINS,
+      finalCoins: 0,
+      finalScore: 0,
+      steps: [],
+    },
   };
 }
 
@@ -51,10 +74,12 @@ router.post('/games', requireAuth, async (req, res, next) => {
   try {
     const network = await getNetwork();
     const assignment = chooseStartAndDestination(network);
+    const planningDeadlineAt = createPlanningDeadline();
     const gameId = await createPlanningGame({
       userId: req.user.id,
       startStationId: assignment.start.id,
       destinationStationId: assignment.destination.id,
+      planningDeadlineAt,
     });
     const game = await getGameById(gameId);
 
@@ -71,6 +96,7 @@ router.post('/games', requireAuth, async (req, res, next) => {
           name: game.destinationStationName,
         },
         planningTimeSeconds: PLANNING_TIME_SECONDS,
+        planningDeadlineAt: game.planningDeadlineAt,
       },
       map: toStationOnlyMap(network),
       segments: network.segments.map(toPlanningSegment),
@@ -133,6 +159,19 @@ router.post('/games/:id/submit-route', requireAuth, async (req, res, next) => {
       network,
       route: req.body.route,
     });
+
+    if (isPlanningExpired(game.planningDeadlineAt)) {
+      await saveGameResult({
+        gameId: game.id,
+        status: 'invalid',
+        route: validation.route,
+        finalScore: 0,
+        steps: [],
+      });
+
+      const savedGame = await getGameById(game.id);
+      return res.json(expiredPlanningResponse(savedGame, validation));
+    }
 
     if (!validation.valid) {
       await saveGameResult({

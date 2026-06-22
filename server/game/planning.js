@@ -1,4 +1,15 @@
 const MIN_DESTINATION_DISTANCE = 3;
+export const PLANNING_TIME_SECONDS = 90;
+
+export function createPlanningDeadline(now = new Date()) {
+  return new Date(
+    now.getTime() + PLANNING_TIME_SECONDS * 1000,
+  ).toISOString();
+}
+
+export function isPlanningExpired(planningDeadlineAt, now = new Date()) {
+  return new Date(planningDeadlineAt).getTime() <= now.getTime();
+}
 
 function buildAdjacency(stations, segments) {
   const adjacency = new Map(stations.map((station) => [station.id, []]));

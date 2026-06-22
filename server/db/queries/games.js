@@ -12,16 +12,18 @@ export async function createPlanningGame({
   userId,
   startStationId,
   destinationStationId,
+  planningDeadlineAt,
 }) {
   const result = await run(
     `INSERT INTO games (
        user_id,
        start_station_id,
        destination_station_id,
-       status
+       status,
+       planning_deadline_at
      )
-     VALUES (?, ?, ?, 'planning')`,
-    [userId, startStationId, destinationStationId],
+     VALUES (?, ?, ?, 'planning', ?)`,
+    [userId, startStationId, destinationStationId, planningDeadlineAt],
   );
 
   return result.lastID;
@@ -37,6 +39,7 @@ export async function getGameById(id) {
        g.destination_station_id,
        destination.name AS destination_station_name,
        g.status,
+       g.planning_deadline_at,
        g.route_json,
        g.final_score,
        g.created_at
@@ -59,6 +62,7 @@ export async function getGameById(id) {
     destinationStationId: row.destination_station_id,
     destinationStationName: row.destination_station_name,
     status: row.status,
+    planningDeadlineAt: row.planning_deadline_at,
     route: normalizeRouteJson(row.route_json),
     finalScore: row.final_score,
     createdAt: row.created_at,

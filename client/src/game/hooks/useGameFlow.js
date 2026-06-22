@@ -3,6 +3,16 @@ import { createGame, getGameSetup, submitGameRoute } from '../../api'
 import { PHASES } from '../constants'
 import { segmentKey } from '../utils/route'
 
+function getTimeLeft(planningDeadlineAt, fallbackSeconds) {
+  const deadline = Date.parse(planningDeadlineAt)
+
+  if (Number.isNaN(deadline)) {
+    return fallbackSeconds
+  }
+
+  return Math.max(0, Math.ceil((deadline - Date.now()) / 1000))
+}
+
 export function useGameFlow() {
   const [phase, setPhase] = useState(PHASES.setup)
   const [setupNetwork, setSetupNetwork] = useState(null)
@@ -84,7 +94,11 @@ export function useGameFlow() {
     }
 
     const planningSeconds = game.planningTimeSeconds ?? 90
-    const deadline = Date.now() + planningSeconds * 1000
+    const parsedDeadline = Date.parse(game.planningDeadlineAt)
+    const deadline = Number.isNaN(parsedDeadline)
+      ? Date.now() + planningSeconds * 1000
+      : parsedDeadline
+    const timeUntilDeadline = Math.max(0, deadline - Date.now())
     const tick = window.setInterval(() => {
       const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000))
       setTimeLeft(remaining)
@@ -99,7 +113,7 @@ export function useGameFlow() {
       ) {
         submitRouteRef.current?.(snapshot.route)
       }
-    }, planningSeconds * 1000)
+    }, timeUntilDeadline)
 
     return () => {
       window.clearInterval(tick)
@@ -117,7 +131,9 @@ export function useGameFlow() {
       setPlanningMap(data.map)
       setSegments(data.segments)
       setRoute([])
-      setTimeLeft(data.game.planningTimeSeconds)
+      setTimeLeft(
+        getTimeLeft(data.game.planningDeadlineAt, data.game.planningTimeSeconds),
+      )
       setResult(null)
       setPhase(PHASES.planning)
     } catch {
