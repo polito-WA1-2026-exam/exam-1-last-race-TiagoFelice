@@ -1,49 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import { ApiError, getInstructions } from './api'
 import GameView from './game/GameView.jsx'
 import RankingView from './ranking/RankingView.jsx'
 import { useSession } from './sessionContext'
 import './App.css'
 
-const routes = new Set(['/', '/login', '/game', '/ranking'])
-
-function navigate(path) {
-  window.history.pushState(null, '', path)
-  window.dispatchEvent(new Event('popstate'))
-}
-
-function usePathname() {
-  const [pathname, setPathname] = useState(window.location.pathname)
-
-  useEffect(() => {
-    const handlePopState = () => {
-      setPathname(window.location.pathname)
-    }
-
-    window.addEventListener('popstate', handlePopState)
-    return () => window.removeEventListener('popstate', handlePopState)
-  }, [])
-
-  return routes.has(pathname) ? pathname : '/'
-}
-
-function RouteLink({ to, children, className }) {
-  return (
-    <a
-      href={to}
-      className={className}
-      onClick={(event) => {
-        event.preventDefault()
-        navigate(to)
-      }}
-    >
-      {children}
-    </a>
-  )
-}
-
 function AppHeader() {
   const { user, loading, isAuthenticated, logout } = useSession()
+  const navigate = useNavigate()
 
   async function handleLogout() {
     await logout()
@@ -52,15 +17,15 @@ function AppHeader() {
 
   return (
     <header className="app-header">
-      <RouteLink to="/" className="brand">
+      <Link to="/" className="brand">
         <span className="brand-mark">LR</span>
         <span>Last Race</span>
-      </RouteLink>
+      </Link>
 
       <nav className="main-nav" aria-label="Main navigation">
-        <RouteLink to="/">Instructions</RouteLink>
-        <RouteLink to="/game">Game</RouteLink>
-        <RouteLink to="/ranking">Ranking</RouteLink>
+        <Link to="/">Instructions</Link>
+        <Link to="/game">Game</Link>
+        <Link to="/ranking">Ranking</Link>
       </nav>
 
       <div className="session-area">
@@ -74,9 +39,9 @@ function AppHeader() {
             </button>
           </>
         ) : (
-          <RouteLink to="/login" className="primary-button">
+          <Link to="/login" className="primary-button">
             Login
-          </RouteLink>
+          </Link>
         )}
       </div>
     </header>
@@ -131,17 +96,17 @@ function HomePage() {
         </p>
         <div className="action-row">
           {isAuthenticated ? (
-            <RouteLink to="/game" className="primary-button">
+            <Link to="/game" className="primary-button">
               Start game
-            </RouteLink>
+            </Link>
           ) : (
-            <RouteLink to="/login" className="primary-button">
+            <Link to="/login" className="primary-button">
               Login to play
-            </RouteLink>
+            </Link>
           )}
-          <RouteLink to="/ranking" className="secondary-link">
+          <Link to="/ranking" className="secondary-link">
             View ranking
-          </RouteLink>
+          </Link>
         </div>
       </section>
 
@@ -175,6 +140,7 @@ function HomePage() {
 
 function LoginPage() {
   const { isAuthenticated, login } = useSession()
+  const navigate = useNavigate()
   const [username, setUsername] = useState('tiago')
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -205,9 +171,9 @@ function LoginPage() {
         <section className="content-panel">
           <h1>Logged in</h1>
           <p>Your session is active.</p>
-          <RouteLink to="/game" className="primary-button">
+          <Link to="/game" className="primary-button">
             Continue
-          </RouteLink>
+          </Link>
         </section>
       </main>
     )
@@ -273,9 +239,9 @@ function ProtectedPage({ title, description, children }) {
         <section className="content-panel">
           <h1>{title}</h1>
           <p>{description}</p>
-          <RouteLink to="/login" className="primary-button">
+          <Link to="/login" className="primary-button">
             Login
-          </RouteLink>
+          </Link>
         </section>
       </main>
     )
@@ -317,27 +283,16 @@ function RankingPage() {
 }
 
 function App() {
-  const pathname = usePathname()
-  const page = useMemo(() => {
-    if (pathname === '/login') {
-      return <LoginPage />
-    }
-
-    if (pathname === '/game') {
-      return <GamePage />
-    }
-
-    if (pathname === '/ranking') {
-      return <RankingPage />
-    }
-
-    return <HomePage />
-  }, [pathname])
-
   return (
     <div className="app-shell">
       <AppHeader />
-      {page}
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/game" element={<GamePage />} />
+        <Route path="/ranking" element={<RankingPage />} />
+        <Route path="*" element={<Navigate replace to="/" />} />
+      </Routes>
     </div>
   )
 }

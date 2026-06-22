@@ -6,8 +6,8 @@ Tiago Felice
 
 ## Project Summary
 
-Last Race is a single-player route-planning game built with React 19, Express,
-Passport.js, sessions, and SQLite.
+Last Race is a single-player route-planning game built with React 19, React
+Router, Express, Passport.js, sessions, and SQLite.
 
 A registered player studies a complete metro network, starts a game, receives a
 random start and destination station, and plans a route in 90 seconds. The server
@@ -84,13 +84,13 @@ The client runs on the Vite URL printed in the terminal, usually
   - Protected endpoint.
   - Starts a new game.
   - Response: game assignment, station-only planning map, all available
-    segments, and planning time.
+    segments, the planning time, and the server-generated planning deadline.
 
 - `POST /api/games/:id/submit-route`
   - Protected endpoint.
   - Request body: `{ "route": [{ "fromStationId": 1, "toStationId": 2 }] }`.
   - Response: validation result, saved game, execution steps, and final score.
-  - Invalid or incomplete routes are stored with score `0`.
+  - Invalid, incomplete, or late routes are stored with score `0`.
 
 - `GET /api/games/:id/steps`
   - Protected endpoint.
@@ -124,8 +124,8 @@ The client runs on the Vite URL printed in the terminal, usually
 
 ## Main React Components
 
-- `App` in `client/src/App.jsx`: small client-side router, header, protected
-  route wrapper, and page selection.
+- `App` in `client/src/App.jsx`: React Router routes, header, protected route
+  wrapper, and page selection.
 - `GameView` in `client/src/game/GameView.jsx`: complete game flow with setup,
   planning, execution, and result phases.
 - `NetworkMap` in `client/src/game/GameView.jsx`: SVG map renderer for the full
